@@ -45,25 +45,24 @@ export default function App() {
             first.current = true;
         };
 
-        apiCall();
+        apiCall().then();
     }, []);
 
     useEffect(() => {
-        if (!first.current) {
-
-            return;
-        }
-
+        if (!first.current) return;
 
         let msg = {
             type: "subscribe",
             product_ids: [pair],
             channels: ["ticker"]
         };
+
         let jsonMsg = JSON.stringify(msg);
+
         ws.current.send(jsonMsg);
 
         let historicalDataURL = `${url}/products/${pair}/candles?granularity=86400`;
+
         const fetchHistoricalData = async () => {
             let dataArr = [];
             await fetch(historicalDataURL)
@@ -74,7 +73,7 @@ export default function App() {
             setpastData(formattedData);
         };
 
-        fetchHistoricalData();
+        fetchHistoricalData().then();
 
         ws.current.onmessage = (e) => {
             let data = JSON.parse(e.data);
@@ -100,11 +99,12 @@ export default function App() {
 
         setpair(e.target.value);
     };
+
     return (
         <div className="container">
             {
                 <select name="currency" value={pair} onChange={handleSelect}>
-                    {currencies.map((cur, idx) => {
+                    {currencies?.map((cur, idx) => {
                         return (
                             <option key={idx} value={cur.id}>
                                 {cur.display_name}
@@ -113,7 +113,8 @@ export default function App() {
                     })}
                 </select>
             }
-            <Dashboard price={price} data={pastData} />
+            {pastData && <Dashboard price={price} data={pastData} />}
+
         </div>
     );
 }
